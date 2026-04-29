@@ -1,120 +1,190 @@
-# Resume NLP System 📄
+# 📄 Resume NLP System
 
-A beginner-friendly NLP project that classifies resumes, matches them to job descriptions, and generates job postings — **built step by step, no black-box models**.
+<p align="center">
+  <img src="banner.png"/>
+</p>
 
----
+![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
+![Framework](https://img.shields.io/badge/Framework-Streamlit-red)
+![NLP](https://img.shields.io/badge/NLP-TF--IDF%20%7C%20Cosine%20Similarity-green)
+![Status](https://img.shields.io/badge/Status-Completed-success)
+![License](https://img.shields.io/badge/License-Educational-lightgrey)
 
-## What the project does
-
-| Page | Feature |
-|------|---------|
-| 🏠 Home | Pipeline overview and dataset statistics |
-| 🤖 Classifier | Paste a resume → predict its job category |
-| 🔍 JD Matcher | Paste a Job Description → find the most similar resumes |
-| 📝 JD Generator | Paste a resume → get a matching Job Description (rule-based or Claude AI) |
-| 📊 EDA | Explore the dataset with charts |
+> 🚀 An end-to-end NLP system for resume classification, job matching, and job description generation using interpretable techniques.
 
 ---
 
-## How the pipeline works (no magic)
+## 🎬 Demo
+
+<p align="center">
+  <img src="demo.gif" width="900"/>
+</p>
+
+---
+
+## 🚀 Overview
+
+**Resume NLP System** is a complete Natural Language Processing application that transforms raw resumes into structured insights.
+
+### 💡 What it does:
+
+* 📂 Classifies resumes into job categories
+* 🔍 Matches resumes with job descriptions
+* 📝 Generates job descriptions from resumes
+
+---
+
+## ✨ Features
+
+* 🤖 Resume Classification (TF-IDF + Centroid)
+* 🔍 Smart Job Matching (Cosine Similarity)
+* 📝 JD Generator (Rule-Based + Claude AI)
+* 📊 EDA Dashboard
+* 🌐 Streamlit Web App
+
+---
+
+## 🧠 Pipeline
 
 ```
-Raw Resume Text
-      │
-      ▼
- 1. ResumeCleaner        → remove emails, phones, URLs, special chars
-      │
-      ▼
- 2. ResumePreprocessor   → word_tokenize → remove stop words → lemmatise
-      │
-      ▼
- 3. ResumeClassifier     → TF-IDF weights → one centroid per category
-      │                    → cosine similarity → predicted category
-      ▼
- 4. ResumeMatcher        → same TF-IDF → cosine similarity vs. JD
-      │
-      ▼
- 5. JobDescriptionGenerator → rule-based template  OR  Claude API
+Raw Resume
+   ↓
+Cleaning
+   ↓
+Preprocessing
+   ↓
+TF-IDF Vectorization
+   ↓
+Classification (Centroids)
+   ↓
+Matching (Cosine Similarity)
+   ↓
+JD Generation
 ```
-
-### Concepts used (from the course notebooks)
-
-- **Tokenisation** — `word_tokenize()` from NLTK (Week 9)
-- **Stop-word removal** — `stopwords.words('english')` (Week 9)
-- **Lemmatisation** — `WordNetLemmatizer` (Week 9)
-- **TF-IDF** — `TfidfVectorizer` from sklearn
-- **Cosine similarity** — `cosine_similarity` from sklearn
-- **Bag of N-Grams** — `CountVectorizer` (nlp_P_preprocessing notebook)
-- **NER / POS tagging** concepts — Week 11 (used for understanding)
 
 ---
 
-## Project structure
+## 🔬 NLP Techniques
+
+* Tokenization (NLTK)
+* Stopword Removal
+* Lemmatization
+* TF-IDF
+* Cosine Similarity
+* N-grams
+
+---
+
+## 🧩 Model Approach
+
+### Centroid-Based Classifier
+
+1. Convert resumes → TF-IDF
+2. Compute centroid per category
+3. Compare using cosine similarity
+4. Pick highest score
+
+✔ Interpretable
+✔ Fast
+✔ No black-box
+
+---
+
+## 📁 Project Structure
 
 ```
 resume_nlp_project/
-├── app.py              ← Streamlit app (5 pages)
-├── cleaner.py          ← ResumeCleaner class
-├── preprocessor.py     ← ResumePreprocessor class (NLTK)
-├── vectorizer.py       ← BagOfNGrams class (CountVectorizer wrapper)
-├── classifier.py       ← ResumeClassifier (TF-IDF centroid, no sklearn model)
-├── matcher.py          ← ResumeMatcher (cosine similarity)
-├── jd_generator.py     ← JobDescriptionGenerator (rule-based + Claude AI)
-├── ResumeDataSet.csv   ← dataset (place here before running)
+├── app.py
+├── cleaner.py
+├── preprocessor.py
+├── vectorizer.py
+├── classifier.py
+├── matcher.py
+├── jd_generator.py
+├── ResumeDataSet.csv
 └── README.md
 ```
 
 ---
 
-## Setup and run
+## ⚙️ Installation
 
 ```bash
-# 1. Install dependencies
 pip install streamlit pandas numpy matplotlib seaborn scikit-learn nltk
-
-# 2. Place the dataset next to app.py
-#    (file: ResumeDataSet.csv  columns: Category, Resume)
-
-# 3. Run the app
 streamlit run app.py
 ```
 
-The app automatically downloads the required NLTK data (`punkt`, `stopwords`, `wordnet`) on first run.
+---
+
+## 📊 Dataset
+
+* 962 resumes
+* 25 categories
+
+| Column   | Description |
+| -------- | ----------- |
+| Category | Job role    |
+| Resume   | Text        |
 
 ---
 
-## Dataset
+## 🤖 AI Integration
 
-The project uses **ResumeDataSet.csv** (962 resumes, 25 categories).
-
-| Column | Description |
-|--------|-------------|
-| `Category` | Job category (e.g. Data Science, Java Developer, HR) |
-| `Resume` | Raw resume text |
-
-If the CSV is not found, a small demo dataset is loaded automatically so the app still works.
+* Claude API for smart JD generation
+* Dynamic & realistic outputs
+* Optional inside app
 
 ---
 
-## Classifier — how it works without sklearn models
+## 📌 Future Improvements
 
-Instead of LogisticRegression or SVM we use a **Centroid Classifier**:
-
-1. Fit TF-IDF on all resumes → sparse matrix `(n_docs, n_features)`
-2. For each category, average all its TF-IDF row vectors → one **centroid** vector per category
-3. For a new resume, transform it to TF-IDF and compute **cosine similarity** to every centroid
-4. The category with the highest similarity wins
-
-This is simple, transparent, and works well on text data.
+* Add Accuracy & F1-score
+* Add BERT / ML models
+* Skill extraction (NER)
+* Resume ranking system
 
 ---
 
-## JD Generator — AI mode
+## 👥 Team
 
-When "Use Claude AI" is toggled on, the app sends the resume to the **Claude API** and returns a unique, non-repetitive job description. No API key needs to be configured separately — the Anthropic SDK handles it automatically inside the Streamlit environment.
+* **Hagar Ayman**
+  📧 [hagar.abosamra55@gmail.com](mailto:hagar.abosamra55@gmail.com)
+  🔗 https://www.linkedin.com/in/hagar-ayman-ab2a3229a/
+
+* **Hend Elkholy**
+  📧 [Hendelkholy55@gmail.com](mailto:Hendelkholy55@gmail.com)
+  🔗 https://www.linkedin.com/in/hend-elkholy-32a4ba294
+
+* **Ahmed Khaled Mohamed Mansor**
+  📧 [ahmed.ghaith979@gmail.com](mailto:ahmed.ghaith979@gmail.com)
+  🔗 https://www.linkedin.com/in/ahmedkhaled-ai
+  💻 https://github.com/Ahmedkhaled1122
+
+* **Moustafa Fathalla**
+  📧 [moustafa05omar@gmail.com](mailto:moustafa05omar@gmail.com)
+  🔗 https://www.linkedin.com/in/moustafafathalla/
+  💻 https://github.com/MoustafaFathalla2005
+
+* **Mina Ibrahim**
 
 ---
 
-## Team
+## ⭐ Support
 
-Built as a group project for the NLP course.
+If you like this project, give it a ⭐ on GitHub!
+
+---
+
+## 📝 License
+
+Educational / Portfolio Use
+
+---
+
+## 🔥 Setup Notes
+
+* Add your banner image as: `banner.png`
+* Add demo recording as: `demo.gif`
+* Place both files in the root directory
+
+---
