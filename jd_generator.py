@@ -313,7 +313,7 @@ class JobDescriptionGenerator:
                 headers={"Content-Type": "application/json"},
                 json={
                     "model"     : "claude-sonnet-4-20250514",
-                    "max_tokens": 1000,
+                    "max_tokens": 1500,
                     "messages"  : [{"role": "user", "content": prompt}],
                 },
                 timeout=30,

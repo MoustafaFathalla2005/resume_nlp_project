@@ -104,11 +104,14 @@ def load_pipeline():
     cleaner = ResumeCleaner()
     preproc = ResumePreprocessor()
 
-    # clean and process every resume
-    df["cleaned"]           = cleaner.clean_series(df["Resume"])
-    df["processed_resume"]  = preproc.process_series(df["cleaned"])
+    # avoid recomputing preprocessing if columns already exist
+    if "cleaned" not in df.columns:
+        df["cleaned"] = cleaner.clean_series(df["Resume"])
 
-    # drop rows where processing left nothing useful
+    if "processed_resume" not in df.columns:
+        df["processed_resume"] = preproc.process_series(df["cleaned"])
+
+    # remove nearly-empty resumes
     df = df[df["processed_resume"].str.len() > 10].reset_index(drop=True)
 
     # fit classifier and matcher on the processed text

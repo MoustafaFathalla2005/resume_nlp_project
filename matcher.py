@@ -8,7 +8,6 @@ the classifier but applied in reverse: we have a JD and want to rank
 all resumes by how well they match.
 """
 
-import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -38,14 +37,16 @@ class ResumeMatcher:
         self.max_features = max_features
         self.ngram_range  = ngram_range
 
-        self._tfidf   = TfidfVectorizer(
+        self._tfidf              = TfidfVectorizer(
             max_features = max_features,
             ngram_range  = ngram_range,
             sublinear_tf = True,
         )
-        self._X      = None   # corpus TF-IDF matrix (n_docs, n_features)
-        self._df     = None   # reference to the original DataFrame
-        self._fitted = False
+
+        self._X                  = None   # corpus TF-IDF matrix (n_docs, n_features)
+        self._df                 = None   # reference to the original DataFrame
+        self._fitted             = False
+        self._corpus_fingerprint = None   # hash of the last corpus — prevents re-fitting on same data
 
     # ── public ──────────────────────────────────────────────────────────────
 
@@ -62,10 +63,19 @@ class ResumeMatcher:
         -------
         self
         """
-        self._df  = df.reset_index(drop=True)
-        texts     = self._df[text_col].fillna("").tolist()
-        self._X   = self._tfidf.fit_transform(texts)
-        self._fitted = True
+
+        texts       = df[text_col].fillna("").tolist()
+        fingerprint = hash(tuple(texts))
+
+        # skip re-fitting if the corpus hasn't changed (e.g. Streamlit page reload)
+        if self._fitted and fingerprint == self._corpus_fingerprint:
+            return self
+
+        self._df                 = df.reset_index(drop=True)
+        self._X                  = self._tfidf.fit_transform(texts)
+        self._fitted             = True
+        self._corpus_fingerprint = fingerprint
+
         return self
 
     def match(self, jd_text, top_n=5, category_filter=None):
