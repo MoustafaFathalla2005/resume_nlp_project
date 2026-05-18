@@ -12,23 +12,10 @@ import pandas as pd
 
 
 class ResumeCleaner:
-    """
-    Clean raw resume text.
-
-    Methods
-    clean(text)          -> str          : clean a single string
-    clean_series(series) -> pd.Series    : clean every row in a Series
-    """
 
     def __init__(self, lowercase=True):
-        """
-        Parameters
-        lowercase : bool, default True
-            Convert text to lowercase after cleaning.
-        """
-        self.lowercase = lowercase
 
-        # compile regex patterns once for speed
+        self.lowercase = lowercase
         self._re_email   = re.compile(r"\b[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}\b")
         self._re_phone   = re.compile(r"(\+?\d[\d\s\-(). ]{7,}\d)")
         self._re_url     = re.compile(r"http[s]?://\S+|www\.\S+|\S+\.(com|org|net|io|edu|gov)\S*", re.I)
@@ -36,14 +23,6 @@ class ResumeCleaner:
         self._re_ws      = re.compile(r"\s+")
 
     def clean(self, text):
-        """
-        Clean a single resume string.
-
-        Parameters
-        text : str  — raw resume text
-
-        Returns:  str  - cleaned text (empty string if input is blank or not a string)
-        """
         if not isinstance(text, str) or not text.strip():
             return ""
 
@@ -60,14 +39,6 @@ class ResumeCleaner:
         return text.strip()
 
     def clean_series(self, series):
-        """
-        Apply clean() to every element of a pandas Series.
-
-        Parameters
-        series : pd.Series  — column of raw resume strings
-
-        Returns:pd.Series  — same index, cleaned strings
-        """
         return series.apply(self.clean)
 
     def __repr__(self):

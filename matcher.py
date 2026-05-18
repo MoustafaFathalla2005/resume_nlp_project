@@ -2,87 +2,47 @@
 matcher.py
 Find the most similar resumes for a given job description.
 
-Uses TF-IDF vectors and cosine similarity — the same technique from
-the classifier but applied in reverse: we have a JD and want to rank
-all resumes by how well they match.
 """
-
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
 class ResumeMatcher:
-    """
-    Rank resumes by cosine similarity to a job description.
-
-    The matcher fits TF-IDF on the whole resume corpus, then at query
-    time transforms the job description with the same vocabulary and
-    computes similarity to every resume.
-
-    Methods
-    fit(df, text_col)          : build TF-IDF index on the corpus
-    match(jd_text, top_n, cat) : return top-N matching resumes
-    """
 
     def __init__(self, max_features=10_000, ngram_range=(1, 2)):
-        """
-        Parameters
-        max_features : int, default 10 000
-        ngram_range  : tuple (min_n, max_n), default (1, 2)
-        """
-        self.max_features = max_features
-        self.ngram_range  = ngram_range
 
-        self._tfidf              = TfidfVectorizer(
-            max_features = max_features,
-            ngram_range  = ngram_range,
-            sublinear_tf = True,
+        self.max_features = max_features
+        self.ngram_range = ngram_range
+
+        self._tfidf = TfidfVectorizer(
+            max_features=max_features,
+            ngram_range=ngram_range,
+            sublinear_tf=True,
         )
 
-        self._X                  = None   
-        self._df                 = None   
-        self._fitted             = False
-        self._corpus_fingerprint = None   
-
+        self._X = None
+        self._df = None
+        self._fitted = False
+        self._corpus_fingerprint = None
 
     def fit(self, df, text_col="processed_resume"):
-        """
-        Build the TF-IDF index on the resume corpus.
 
-        Parameters
-        df       : pd.DataFrame  — must contain text_col
-        text_col : str           — column of processed resume strings
-
-        Returns: self
-        """
-
-        texts       = df[text_col].fillna("").tolist()
+        texts = df[text_col].fillna("").tolist()
         fingerprint = hash(tuple(texts))
 
         if self._fitted and fingerprint == self._corpus_fingerprint:
             return self
 
-        self._df                 = df.reset_index(drop=True)
-        self._X                  = self._tfidf.fit_transform(texts)
-        self._fitted             = True
+        self._df = df.reset_index(drop=True)
+        self._X = self._tfidf.fit_transform(texts)
+        self._fitted = True
         self._corpus_fingerprint = fingerprint
 
         return self
 
     def match(self, jd_text, top_n=5, category_filter=None):
-        """
-        Find the top-N resumes most similar to a job description.
 
-        Parameters
-        jd_text         : str       — job description (processed or raw)
-        top_n           : int       — how many results to return
-        category_filter : str|None  — restrict results to this category
-
-        Returns
-        pd.DataFrame  columns ['rank', 'Category', 'similarity_pct', 'resume_snippet']
-                      sorted by similarity descending
-        """
         self._check_fitted()
 
         jd_vec = self._tfidf.transform([jd_text])
@@ -98,15 +58,15 @@ class ResumeMatcher:
         rows = []
         for rank, idx in enumerate(top_idx, start=1):
             row = self._df.iloc[idx]
+
             rows.append({
-                "rank"           : rank,
-                "Category"       : row.get("Category", "?"),
-                "similarity_pct" : round(float(sims[idx]) * 100, 1),
-                "resume_snippet" : str(row.get("Resume", ""))[:250] + "...",
+                "rank": rank,
+                "Category": row.get("Category", "?"),
+                "similarity_pct": round(float(sims[idx]) * 100, 1),
+                "resume_snippet": str(row.get("Resume", ""))[:250] + "...",
             })
 
         return pd.DataFrame(rows)
-
 
     def _check_fitted(self):
         if not self._fitted:
