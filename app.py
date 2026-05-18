@@ -120,11 +120,14 @@ def load_pipeline():
     matcher = ResumeMatcher(max_features=10_000)
     matcher.fit(df, text_col="processed_resume")
 
+    generator = JobDescriptionGenerator()
+
     return {
         "cleaner"    : cleaner,
         "preprocessor": preproc,
         "classifier" : classifier,
         "matcher"    : matcher,
+        "generator"  : generator,
         "df"         : df,
     }
 
@@ -229,7 +232,7 @@ if page == "🏠 Home":
 | 3 | `vectorizer.py` | Bag-of-N-grams with CountVectorizer |
 | 4 | `classifier.py` | TF-IDF centroids + cosine similarity (no sklearn model) |
 | 5 | `matcher.py` | Rank resumes by cosine similarity to a JD |
-| 6 | `jd_generator.py` | Rule-based or Claude-AI job description |
+| 6 | `jd_generator.py` | Rule-based job description generator |
 """)
 
 
@@ -315,11 +318,7 @@ elif page == "📝 JD Generator":
     st.header("Job Description Generator")
     st.markdown("Paste a resume — the system builds a matching Job Description.")
 
-    col1, col2 = st.columns([3, 1])
-    resume_in  = col1.text_area("Resume text", height=200, placeholder="Paste resume here…")
-    use_ai     = col2.toggle("Use Claude AI", value=False)
-    if use_ai:
-        col2.info("Calls Claude API. Needs internet access and API key set in the environment.")
+    resume_in = st.text_area("Resume text", height=200, placeholder="Paste resume here…")
 
     if st.button("Generate JD", type="primary", use_container_width=True):
         if len(resume_in.strip()) < 20:
@@ -327,7 +326,7 @@ elif page == "📝 JD Generator":
         else:
             with st.spinner("Generating…"):
                 clf_result = _classify(resume_in, pipeline)
-                gen        = JobDescriptionGenerator(use_ai=use_ai)
+                gen        = pipeline["generator"]
                 jd_out     = gen.generate_from_resume(resume_in, category=clf_result["category"])
 
             st.success(f"Generated for category: **{clf_result['category']}**")

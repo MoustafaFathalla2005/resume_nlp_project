@@ -1,0 +1,269 @@
+################################################################################
+# JD_GENERATOR_DB.TXT
+# Job Description Generator — static database
+#
+# FORMAT RULES
+# ────────────────────────────────────────────────────────────────────────────
+# Every section is delimited by:
+#   ###BEGIN_<SECTION_NAME>###
+#   ###END_<SECTION_NAME>###
+#
+# Inside list-value sections, one entry per line.
+# Inside key→list sections, each key block is delimited by:
+#   ---KEY: <key_name>---
+#   ---ENDKEY---
+#
+# These delimiters are intentionally verbose and symbol-heavy so that
+# generated job-description text (written elsewhere) can NEVER accidentally
+# match them.
+################################################################################
+
+
+###BEGIN_SKILLS_DB###
+---KEY: data_science---
+python
+r
+machine learning
+deep learning
+tensorflow
+pytorch
+scikit-learn
+pandas
+numpy
+statistics
+nlp
+computer vision
+sql
+tableau
+spark
+---ENDKEY---
+
+---KEY: web---
+javascript
+typescript
+react
+angular
+vue
+node
+html
+css
+webpack
+graphql
+redux
+---ENDKEY---
+
+---KEY: backend---
+python
+java
+django
+flask
+fastapi
+spring
+microservices
+docker
+kubernetes
+aws
+azure
+postgresql
+mysql
+mongodb
+redis
+kafka
+---ENDKEY---
+
+---KEY: devops---
+docker
+kubernetes
+jenkins
+terraform
+ansible
+aws
+azure
+linux
+bash
+prometheus
+grafana
+---ENDKEY---
+
+---KEY: java---
+java
+spring
+hibernate
+maven
+gradle
+junit
+jpa
+---ENDKEY---
+
+---KEY: testing---
+selenium
+pytest
+junit
+cucumber
+jira
+postman
+---ENDKEY---
+###END_SKILLS_DB###
+
+
+###BEGIN_CATEGORY_TITLE_MAP###
+---KEY: Data Science---
+Senior Data Scientist / ML Engineer
+---ENDKEY---
+
+---KEY: Python Developer---
+Python Software Engineer
+---ENDKEY---
+
+---KEY: Java Developer---
+Java Backend Engineer
+---ENDKEY---
+
+---KEY: Web Designing---
+Frontend / Full-Stack Developer
+---ENDKEY---
+
+---KEY: DevOps Engineer---
+DevOps / Platform Engineer
+---ENDKEY---
+
+---KEY: Network Security Engineer---
+Cybersecurity Engineer
+---ENDKEY---
+
+---KEY: Database---
+Database Engineer / DBA
+---ENDKEY---
+
+---KEY: DotNet Developer---
+.NET Software Engineer
+---ENDKEY---
+
+---KEY: Blockchain---
+Blockchain Developer
+---ENDKEY---
+
+---KEY: Testing---
+QA Automation Engineer
+---ENDKEY---
+
+---KEY: Automation Testing---
+SDET / Automation Engineer
+---ENDKEY---
+
+---KEY: ETL Developer---
+Data / ETL Engineer
+---ENDKEY---
+
+---KEY: Hadoop---
+Big Data Engineer
+---ENDKEY---
+
+---KEY: HR---
+HR Business Partner
+---ENDKEY---
+
+---KEY: Sales---
+Sales Account Executive
+---ENDKEY---
+
+---KEY: Mechanical Engineer---
+Mechanical Design Engineer
+---ENDKEY---
+
+---KEY: Civil Engineer---
+Civil / Structural Engineer
+---ENDKEY---
+
+---KEY: Electrical Engineering---
+Electrical Systems Engineer
+---ENDKEY---
+###END_CATEGORY_TITLE_MAP###
+
+
+###BEGIN_SUMMARIES###
+---KEY: Data Science---
+We are looking for a data-driven {title} who turns raw data into products. You will own the full ML lifecycle: data, experiments, models in production, and monitoring.
+---ENDKEY---
+
+---KEY: Python Developer---
+We need a sharp {title} who writes clean, tested Python and cares about code quality, performance, and maintainability.
+---ENDKEY---
+
+---KEY: Java Developer---
+We are hiring a {title} to build high-throughput backend services. You will own microservices, APIs, and data pipelines in a cloud-native environment.
+---ENDKEY---
+
+---KEY: Web Designing---
+We want a creative {title} who turns designs into fast, accessible web experiences — from wireframe to production CSS.
+---ENDKEY---
+
+---KEY: DevOps Engineer---
+We need a {title} who lives and breathes automation: CI/CD, infrastructure-as-code, and observability from day one.
+---ENDKEY---
+
+---KEY: Testing---
+We are looking for a quality-obsessed {title} to build test suites that give the whole team confidence to ship at speed.
+---ENDKEY---
+
+---KEY: HR---
+We are looking for a people-first {title} to drive talent acquisition, onboarding, and employee engagement.
+---ENDKEY---
+###END_SUMMARIES###
+
+
+###BEGIN_RESPONSIBILITIES###
+---KEY: Data Science---
+Design, train, and evaluate ML/DL models end-to-end
+Build and maintain feature pipelines and data workflows
+Collaborate with product and engineering on experiment design
+Monitor model drift and own retraining cycles
+Document findings and present results to stakeholders
+---ENDKEY---
+
+---KEY: Python Developer---
+Write clean, tested, and well-documented Python code
+Design and maintain REST APIs and backend services
+Review pull requests and mentor junior developers
+Identify and fix performance bottlenecks
+Participate in system design discussions
+---ENDKEY---
+
+---KEY: Java Developer---
+Build and maintain high-performance Java microservices
+Design RESTful APIs consumed by web and mobile clients
+Write unit and integration tests with high coverage
+Optimise database queries and caching strategies
+---ENDKEY---
+
+---KEY: DevOps Engineer---
+Design and maintain CI/CD pipelines for multiple teams
+Manage cloud infrastructure using Terraform / Ansible
+Own observability stack: metrics, logs, and alerting
+Harden security posture and manage access controls
+---ENDKEY---
+
+---KEY: _default---
+Design, develop, and deliver features in a cross-functional team
+Write clean, well-tested, and documented code
+Participate in architecture discussions and code reviews
+Mentor junior engineers and share technical knowledge
+---ENDKEY---
+###END_RESPONSIBILITIES###
+
+
+###BEGIN_OFFERS###
+---KEY: Data Science---
+Access to cutting-edge GPU compute
+Conference and publication budget
+Flexible remote / hybrid schedule
+Competitive salary and equity
+---ENDKEY---
+
+---KEY: _default---
+Competitive, market-benchmarked salary and annual bonus
+Flexible remote / hybrid work
+Annual learning and development budget
+Health, dental, and vision coverage
+---ENDKEY---
+###END_OFFERS###

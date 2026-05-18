@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 jd_generator.py
 Generate a Job Description from a resume text.
@@ -12,64 +13,34 @@ resume to Claude and returns whatever it writes — no repetition, no
 copy-paste phrasing.
 """
 
+=======
+>>>>>>> e1aa699cdab3c7216389cd8e9a3ed0bcd3b14a69
 import re
-import requests
+import random
+import pandas as pd
 
-
-# ── skills database ──────────────────────────────────────────────────────────
-SKILLS_DB = {
-    "data_science"     : ["python", "r", "machine learning", "deep learning",
-                          "tensorflow", "pytorch", "scikit-learn", "pandas",
-                          "numpy", "statistics", "nlp", "computer vision",
-                          "sql", "tableau", "spark"],
-    "web"              : ["javascript", "typescript", "react", "angular",
-                          "vue", "node", "html", "css", "webpack", "graphql", "redux"],
-    "backend"          : ["python", "java", "django", "flask", "fastapi",
-                          "spring", "microservices", "docker", "kubernetes",
-                          "aws", "azure", "postgresql", "mysql", "mongodb",
-                          "redis", "kafka"],
-    "devops"           : ["docker", "kubernetes", "jenkins", "terraform",
-                          "ansible", "aws", "azure", "linux", "bash",
-                          "prometheus", "grafana"],
-    "java"             : ["java", "spring", "hibernate", "maven", "gradle",
-                          "junit", "jpa"],
-    "testing"          : ["selenium", "pytest", "junit", "cucumber",
-                          "jira", "postman"],
-}
-
-# map predicted category → job title shown in the JD
-CATEGORY_TITLE_MAP = {
-    "Data Science"             : "Senior Data Scientist / ML Engineer",
-    "Python Developer"         : "Python Software Engineer",
-    "Java Developer"           : "Java Backend Engineer",
-    "Web Designing"            : "Frontend / Full-Stack Developer",
-    "DevOps Engineer"          : "DevOps / Platform Engineer",
-    "Network Security Engineer": "Cybersecurity Engineer",
-    "Database"                 : "Database Engineer / DBA",
-    "DotNet Developer"         : ".NET Software Engineer",
-    "Blockchain"               : "Blockchain Developer",
-    "Testing"                  : "QA Automation Engineer",
-    "Automation Testing"       : "SDET / Automation Engineer",
-    "ETL Developer"            : "Data / ETL Engineer",
-    "Hadoop"                   : "Big Data Engineer",
-    "HR"                       : "HR Business Partner",
-    "Sales"                    : "Sales Account Executive",
-    "Mechanical Engineer"      : "Mechanical Design Engineer",
-    "Civil Engineer"           : "Civil / Structural Engineer",
-    "Electrical Engineering"   : "Electrical Systems Engineer",
-}
+from db_reader import (
+    get_skills_db,
+    get_category_title_map,
+    get_summaries,
+    get_responsibilities,
+    get_offers,
+)
+from matcher import ResumeMatcher
 
 
 class JobDescriptionGenerator:
-    """
-    Build a job description from a resume string.
 
-    Rule-based mode extracts skills + years of experience from the resume
-    text and assembles a structured JD with role-specific content.
+    SAMPLE_LIMITS: dict[str, tuple[int, int]] = {
+        "responsibilities": (3, 5),
+        "offers"          : (2, 4),
+        "skills"          : (3, 8),
+    }
 
-    AI mode sends the resume to the Claude API and returns whatever
-    Claude writes — guaranteed to be unique and non-repetitive.
+    def __init__(self, db_path: str = None, sample_limits: dict = None):
+        self._db_path = db_path
 
+<<<<<<< HEAD
     Methods
     generate_from_resume(resume_text, category) -> str  : main entry point
     extract_skills(text)                        -> list : matched skills
@@ -84,11 +55,26 @@ class JobDescriptionGenerator:
         """
         self.use_ai = use_ai
 
+=======
+        # per-instance override of sampling limits (falls back to class defaults)
+        self._sample_limits = {**self.SAMPLE_LIMITS, **(sample_limits or {})}
 
-    def generate_from_resume(self, resume_text, category=None):
-        """
-        Generate a job description.
+        # ── lazy DB tables ─────────────────────────────────────────────────
+        self._skills_db          = None
+        self._category_title_map = None
+        self._summaries          = None
+        self._responsibilities   = None
+        self._offers             = None
 
+        self._category_matcher: ResumeMatcher | None = None
+        self._summary_matcher:  ResumeMatcher | None = None
+        self._resp_matcher:     ResumeMatcher | None = None
+        self._offers_matcher:   ResumeMatcher | None = None
+>>>>>>> e1aa699cdab3c7216389cd8e9a3ed0bcd3b14a69
+
+    # ── DB properties (load once from file, then cached) ──────────────────
+
+<<<<<<< HEAD
         Parameters
         resume_text : str       — raw or cleaned resume
         category    : str|None  — predicted job category (used to pick title)
@@ -110,14 +96,167 @@ class JobDescriptionGenerator:
         Returns
         list of str  — unique skill strings found, in order of discovery
         """
+=======
+    def _load_all(self):
+        kw = {"filepath": self._db_path} if self._db_path else {}
+        self._skills_db          = get_skills_db(**kw)
+        self._category_title_map = get_category_title_map(**kw)
+        self._summaries          = get_summaries(**kw)
+        self._responsibilities   = get_responsibilities(**kw)
+        self._offers             = get_offers(**kw)
+
+    @property
+    def skills_db(self) -> dict:
+        if self._skills_db is None:
+            self._load_all()
+        return self._skills_db
+
+    @property
+    def category_title_map(self) -> dict:
+        if self._category_title_map is None:
+            self._load_all()
+        return self._category_title_map
+
+    @property
+    def summaries(self) -> dict:
+        if self._summaries is None:
+            self._load_all()
+        return self._summaries
+
+    @property
+    def responsibilities(self) -> dict:
+        if self._responsibilities is None:
+            self._load_all()
+        return self._responsibilities
+
+    @property
+    def offers(self) -> dict:
+        if self._offers is None:
+            self._load_all()
+        return self._offers
+
+    # ── corpus builders ───────────────────────────────────────────────────
+
+    def _build_category_corpus(self) -> pd.DataFrame:
+        norm = {k.lower().replace("_", " "): v for k, v in self.skills_db.items()}
+        rows = []
+        for category in self.category_title_map:
+            skills = (
+                self.skills_db.get(category.lower().replace(" ", "_"))
+                or norm.get(category.lower())
+                or []
+            )
+            resps = self.responsibilities.get(
+                category,
+                self.responsibilities.get("_default", [])
+            )
+            doc = " ".join(skills) + " " + " ".join(resps)
+            rows.append({"Category": category, "Resume": doc.strip()})
+        return pd.DataFrame(rows)
+
+    def _build_section_corpus(self, section: dict) -> pd.DataFrame:
+        rows = []
+        for key, value in section.items():
+            text = value if isinstance(value, str) else " ".join(value)
+            rows.append({"Category": key, "Resume": text})
+        return pd.DataFrame(rows)
+
+    # ── matcher properties (fit once, then cached) ────────────────────────
+
+    @property
+    def category_matcher(self) -> ResumeMatcher:
+        if self._category_matcher is None:
+            self._category_matcher = ResumeMatcher()
+            self._category_matcher.fit(self._build_category_corpus(), text_col="Resume")
+        return self._category_matcher
+
+    @property
+    def summary_matcher(self) -> ResumeMatcher:
+        if self._summary_matcher is None:
+            self._summary_matcher = ResumeMatcher()
+            self._summary_matcher.fit(
+                self._build_section_corpus(self.summaries), text_col="Resume"
+            )
+        return self._summary_matcher
+
+    @property
+    def resp_matcher(self) -> ResumeMatcher:
+        if self._resp_matcher is None:
+            self._resp_matcher = ResumeMatcher()
+            self._resp_matcher.fit(
+                self._build_section_corpus(self.responsibilities), text_col="Resume"
+            )
+        return self._resp_matcher
+
+    @property
+    def offers_matcher(self) -> ResumeMatcher:
+        if self._offers_matcher is None:
+            self._offers_matcher = ResumeMatcher()
+            self._offers_matcher.fit(
+                self._build_section_corpus(self.offers), text_col="Resume"
+            )
+        return self._offers_matcher
+
+    # ── matcher-driven data fetchers ──────────────────────────────────────
+
+    def _infer_category(self, resume_text: str, hint: str = None) -> str:
+        if hint and hint in self.category_title_map:
+            return hint
+        result = self.category_matcher.match(resume_text, top_n=1)
+        return (
+            result.iloc[0]["Category"]
+            if not result.empty
+            else next(iter(self.category_title_map))
+        )
+
+    def _fetch_title(self, category: str) -> str:
+        return self.category_title_map[category]
+
+    def _fetch_summary(self, resume_text: str, category: str) -> str:
+        if category in self.summaries:
+            return self.summaries[category]
+        result = self.summary_matcher.match(resume_text, top_n=1)
+        key    = result.iloc[0]["Category"] if not result.empty else "_default"
+        return self.summaries.get(key, "")
+
+    def _fetch_responsibilities(self, resume_text: str, category: str) -> list:
+        if category in self.responsibilities:
+            pool = self.responsibilities[category]
+        else:
+            result = self.resp_matcher.match(resume_text, top_n=1)
+            key    = result.iloc[0]["Category"] if not result.empty else "_default"
+            pool   = self.responsibilities.get(key, [])
+        return self._sample(pool, "responsibilities")
+
+    def _fetch_offers(self, resume_text: str, category: str) -> list:
+        if category in self.offers:
+            pool = self.offers[category]
+        else:
+            result = self.offers_matcher.match(resume_text, top_n=1)
+            key    = result.iloc[0]["Category"] if not result.empty else "_default"
+            pool   = self.offers.get(key, [])
+        return self._sample(pool, "offers")
+
+    # ── public ────────────────────────────────────────────────────────────
+
+    def generate_from_resume(self, resume_text: str, category: str = None) -> str:
+        return self._generate_rule_based(resume_text, category)
+
+    def extract_skills(self, text: str) -> list:
+        """Extract skills using word-boundary matching to avoid false positives."""
+>>>>>>> e1aa699cdab3c7216389cd8e9a3ed0bcd3b14a69
         text_lower = text.lower()
         found = []
-        for skill_list in SKILLS_DB.values():
+        for skill_list in self.skills_db.values():
             for skill in skill_list:
-                if skill in text_lower and skill not in found:
+                if len(skill) < 2:
+                    continue
+                pattern = r'\b' + re.escape(skill) + r'\b'
+                if re.search(pattern, text_lower) and skill not in found:
                     found.append(skill)
-        return found
+        return self._sample(found, "skills")
 
+<<<<<<< HEAD
     def extract_experience_years(self, text):
         """
         Parse the largest number of years mentioned in the resume.
@@ -131,112 +270,49 @@ class JobDescriptionGenerator:
         matches = re.findall(r"(\d+)\+?\s*(years?|yrs?)", text.lower())
         return max((int(m[0]) for m in matches), default=1)
 
+=======
+    def extract_experience_years(self, text: str) -> int:
+        """Return the largest year count mentioned; defaults to 1."""
+        matches = re.findall(r"(\d+)\+?\s*(years?|yrs?)", text.lower())
+        return max((int(m[0]) for m in matches), default=1)
 
-    # role-specific summaries (one per category)
-    _SUMMARIES = {
-        "Data Science":
-            "We are looking for a data-driven {title} who turns raw data into "
-            "products. You will own the full ML lifecycle: data, experiments, "
-            "models in production, and monitoring.",
-        "Python Developer":
-            "We need a sharp {title} who writes clean, tested Python and cares "
-            "about code quality, performance, and maintainability.",
-        "Java Developer":
-            "We are hiring a {title} to build high-throughput backend services. "
-            "You will own microservices, APIs, and data pipelines in a "
-            "cloud-native environment.",
-        "Web Designing":
-            "We want a creative {title} who turns designs into fast, accessible "
-            "web experiences — from wireframe to production CSS.",
-        "DevOps Engineer":
-            "We need a {title} who lives and breathes automation: CI/CD, "
-            "infrastructure-as-code, and observability from day one.",
-        "Testing":
-            "We are looking for a quality-obsessed {title} to build test suites "
-            "that give the whole team confidence to ship at speed.",
-        "HR":
-            "We are looking for a people-first {title} to drive talent "
-            "acquisition, onboarding, and employee engagement.",
-    }
+    # ── private helpers ───────────────────────────────────────────────────
+>>>>>>> e1aa699cdab3c7216389cd8e9a3ed0bcd3b14a69
 
-    _RESPONSIBILITIES = {
-        "Data Science": [
-            "Design, train, and evaluate ML/DL models end-to-end",
-            "Build and maintain feature pipelines and data workflows",
-            "Collaborate with product and engineering on experiment design",
-            "Monitor model drift and own retraining cycles",
-            "Document findings and present results to stakeholders",
-        ],
-        "Python Developer": [
-            "Write clean, tested, and well-documented Python code",
-            "Design and maintain REST APIs and backend services",
-            "Review pull requests and mentor junior developers",
-            "Identify and fix performance bottlenecks",
-            "Participate in system design discussions",
-        ],
-        "Java Developer": [
-            "Build and maintain high-performance Java microservices",
-            "Design RESTful APIs consumed by web and mobile clients",
-            "Write unit and integration tests with high coverage",
-            "Optimise database queries and caching strategies",
-        ],
-        "DevOps Engineer": [
-            "Design and maintain CI/CD pipelines for multiple teams",
-            "Manage cloud infrastructure using Terraform / Ansible",
-            "Own observability stack: metrics, logs, and alerting",
-            "Harden security posture and manage access controls",
-        ],
-        "_default": [
-            "Design, develop, and deliver features in a cross-functional team",
-            "Write clean, well-tested, and documented code",
-            "Participate in architecture discussions and code reviews",
-            "Mentor junior engineers and share technical knowledge",
-        ],
-    }
-
-    _OFFERS = {
-        "Data Science": [
-            "Access to cutting-edge GPU compute",
-            "Conference and publication budget",
-            "Flexible remote / hybrid schedule",
-            "Competitive salary and equity",
-        ],
-        "_default": [
-            "Competitive, market-benchmarked salary and annual bonus",
-            "Flexible remote / hybrid work",
-            "Annual learning and development budget",
-            "Health, dental, and vision coverage",
-        ],
-    }
-
-    def _pick_title(self, skills, category):
-        if category and category in CATEGORY_TITLE_MAP:
-            return CATEGORY_TITLE_MAP[category]
-        skill_set = set(skills)
-        if skill_set & {"machine learning", "deep learning", "tensorflow"}:
-            return "Data Scientist / ML Engineer"
-        if skill_set & {"react", "angular", "vue", "javascript"}:
-            return "Frontend / Full-Stack Developer"
-        if skill_set & {"django", "flask", "fastapi", "spring"}:
-            return "Backend Software Engineer"
-        if skill_set & {"docker", "kubernetes", "terraform"}:
-            return "DevOps / Platform Engineer"
-        return "Software Engineer"
-
-    def _group_skills(self, skills):
-        """Group found skills by their SKILLS_DB domain."""
+    def _group_skills(self, skills: list) -> dict:
+        """Group found skills by their DB domain."""
         groups = {}
-        for domain, domain_skills in SKILLS_DB.items():
+        for domain, domain_skills in self.skills_db.items():
             matched = [s for s in skills if s in domain_skills]
             if matched:
                 groups[domain.replace("_", " ").title()] = matched
         return groups
 
-    def _generate_rule_based(self, resume_text, category):
+    def _sample(self, items: list, section: str) -> list:
+        if not items:
+            return items
+
+        lo, hi = self._sample_limits.get(section, (3, len(items)))
+        hi     = min(hi, len(items))
+
+        if len(items) <= lo:
+            return items
+
+        k       = random.randint(lo, hi)
+        indices = sorted(random.sample(range(len(items)), k))
+        return [items[i] for i in indices]
+
+    def _generate_rule_based(self, resume_text: str, category: str) -> str:
+        category    = self._infer_category(resume_text, hint=category)
+        title       = self._fetch_title(category)
+        summary_tpl = self._fetch_summary(resume_text, category)
+        resp_lines  = self._fetch_responsibilities(resume_text, category)
+        offer_lines = self._fetch_offers(resume_text, category)
+
         skills = self.extract_skills(resume_text)
         years  = self.extract_experience_years(resume_text)
-        title  = self._pick_title(skills, category)
 
+<<<<<<< HEAD
         summary_tpl = self._SUMMARIES.get(
             category,
             "We are looking for a talented {title} with {years}+ years of experience "
@@ -246,6 +322,9 @@ class JobDescriptionGenerator:
 
         
         resp_lines = self._RESPONSIBILITIES.get(category, self._RESPONSIBILITIES["_default"])
+=======
+        summary    = summary_tpl.format(title=title, years=years)
+>>>>>>> e1aa699cdab3c7216389cd8e9a3ed0bcd3b14a69
         resp_block = "\n".join(f"  - {r}" for r in resp_lines)
 
         skill_groups = self._group_skills(skills)
@@ -258,12 +337,18 @@ class JobDescriptionGenerator:
             "  - Solid understanding of software design principles",
             "  - Experience working in agile / scrum teams",
         ]
+<<<<<<< HEAD
         req_block = "\n".join(req_lines)
 
         offers      = self._OFFERS.get(category, self._OFFERS["_default"])
         offer_block = "\n".join(f"  - {o}" for o in offers)
 
         tech_stack = ", ".join(skills) if skills else "General technical skills"
+=======
+        req_block   = "\n".join(req_lines)
+        offer_block = "\n".join(f"  - {o}" for o in offer_lines)
+        tech_stack  = ", ".join(skills) if skills else "General technical skills"
+>>>>>>> e1aa699cdab3c7216389cd8e9a3ed0bcd3b14a69
 
         sep = "─" * 50
         return (
@@ -278,6 +363,7 @@ class JobDescriptionGenerator:
             f"{sep}"
         )
 
+<<<<<<< HEAD
 
     def _generate_ai(self, resume_text, category):
         """Call Claude API to write a unique JD. Falls back to rule-based on error."""
@@ -311,5 +397,7 @@ class JobDescriptionGenerator:
             print(f"[JDGenerator] AI call failed ({exc}). Using rule-based fallback.")
             return self._generate_rule_based(resume_text, category)
 
+=======
+>>>>>>> e1aa699cdab3c7216389cd8e9a3ed0bcd3b14a69
     def __repr__(self):
-        return f"JobDescriptionGenerator(use_ai={self.use_ai})"
+        return f"JobDescriptionGenerator()"
