@@ -1,6 +1,5 @@
 """
 matcher.py
-----------
 Find the most similar resumes for a given job description.
 
 Uses TF-IDF vectors and cosine similarity — the same technique from
@@ -22,7 +21,6 @@ class ResumeMatcher:
     computes similarity to every resume.
 
     Methods
-    -------
     fit(df, text_col)          : build TF-IDF index on the corpus
     match(jd_text, top_n, cat) : return top-N matching resumes
     """
@@ -30,7 +28,6 @@ class ResumeMatcher:
     def __init__(self, max_features=10_000, ngram_range=(1, 2)):
         """
         Parameters
-        ----------
         max_features : int, default 10 000
         ngram_range  : tuple (min_n, max_n), default (1, 2)
         """
@@ -43,31 +40,26 @@ class ResumeMatcher:
             sublinear_tf = True,
         )
 
-        self._X                  = None   # corpus TF-IDF matrix (n_docs, n_features)
-        self._df                 = None   # reference to the original DataFrame
+        self._X                  = None   
+        self._df                 = None   
         self._fitted             = False
-        self._corpus_fingerprint = None   # hash of the last corpus — prevents re-fitting on same data
+        self._corpus_fingerprint = None   
 
-    # ── public ──────────────────────────────────────────────────────────────
 
     def fit(self, df, text_col="processed_resume"):
         """
         Build the TF-IDF index on the resume corpus.
 
         Parameters
-        ----------
         df       : pd.DataFrame  — must contain text_col
         text_col : str           — column of processed resume strings
 
-        Returns
-        -------
-        self
+        Returns: self
         """
 
         texts       = df[text_col].fillna("").tolist()
         fingerprint = hash(tuple(texts))
 
-        # skip re-fitting if the corpus hasn't changed (e.g. Streamlit page reload)
         if self._fitted and fingerprint == self._corpus_fingerprint:
             return self
 
@@ -83,30 +75,24 @@ class ResumeMatcher:
         Find the top-N resumes most similar to a job description.
 
         Parameters
-        ----------
         jd_text         : str       — job description (processed or raw)
         top_n           : int       — how many results to return
         category_filter : str|None  — restrict results to this category
 
         Returns
-        -------
         pd.DataFrame  columns ['rank', 'Category', 'similarity_pct', 'resume_snippet']
                       sorted by similarity descending
         """
         self._check_fitted()
 
-        # transform the JD with the corpus vocabulary
         jd_vec = self._tfidf.transform([jd_text])
 
-        # cosine similarity against every resume
         sims = cosine_similarity(jd_vec, self._X).flatten()
 
-        # optionally zero-out resumes that don't match the category filter
         if category_filter and "Category" in self._df.columns:
             mask = self._df["Category"] == category_filter
             sims[~mask.values] = -1
 
-        # get top-N indices sorted by similarity descending
         top_idx = sims.argsort()[::-1][:top_n]
 
         rows = []
@@ -121,7 +107,6 @@ class ResumeMatcher:
 
         return pd.DataFrame(rows)
 
-    # ── private ─────────────────────────────────────────────────────────────
 
     def _check_fitted(self):
         if not self._fitted:

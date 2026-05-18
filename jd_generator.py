@@ -1,6 +1,5 @@
 """
 jd_generator.py
----------------
 Generate a Job Description from a resume text.
 
 Two modes:
@@ -72,7 +71,6 @@ class JobDescriptionGenerator:
     Claude writes — guaranteed to be unique and non-repetitive.
 
     Methods
-    -------
     generate_from_resume(resume_text, category) -> str  : main entry point
     extract_skills(text)                        -> list : matched skills
     extract_experience_years(text)              -> int  : max years found
@@ -81,25 +79,21 @@ class JobDescriptionGenerator:
     def __init__(self, use_ai=False):
         """
         Parameters
-        ----------
         use_ai : bool, default False
             If True, call the Claude API. Falls back to rule-based on failure.
         """
         self.use_ai = use_ai
 
-    # ── public ──────────────────────────────────────────────────────────────
 
     def generate_from_resume(self, resume_text, category=None):
         """
         Generate a job description.
 
         Parameters
-        ----------
         resume_text : str       — raw or cleaned resume
         category    : str|None  — predicted job category (used to pick title)
 
         Returns
-        -------
         str  — formatted job description
         """
         if self.use_ai:
@@ -111,11 +105,9 @@ class JobDescriptionGenerator:
         Find all skills from SKILLS_DB present in the resume text.
 
         Parameters
-        ----------
         text : str
 
         Returns
-        -------
         list of str  — unique skill strings found, in order of discovery
         """
         text_lower = text.lower()
@@ -131,17 +123,14 @@ class JobDescriptionGenerator:
         Parse the largest number of years mentioned in the resume.
 
         Parameters
-        ----------
         text : str
 
         Returns
-        -------
         int  — maximum years found; defaults to 1 if none mentioned
         """
         matches = re.findall(r"(\d+)\+?\s*(years?|yrs?)", text.lower())
         return max((int(m[0]) for m in matches), default=1)
 
-    # ── private rule-based ───────────────────────────────────────────────────
 
     # role-specific summaries (one per category)
     _SUMMARIES = {
@@ -248,7 +237,6 @@ class JobDescriptionGenerator:
         years  = self.extract_experience_years(resume_text)
         title  = self._pick_title(skills, category)
 
-        # summary
         summary_tpl = self._SUMMARIES.get(
             category,
             "We are looking for a talented {title} with {years}+ years of experience "
@@ -256,11 +244,10 @@ class JobDescriptionGenerator:
         )
         summary = summary_tpl.format(title=title, years=years)
 
-        # responsibilities
+        
         resp_lines = self._RESPONSIBILITIES.get(category, self._RESPONSIBILITIES["_default"])
         resp_block = "\n".join(f"  - {r}" for r in resp_lines)
 
-        # requirements — experience + grouped skills + generic lines
         skill_groups = self._group_skills(skills)
         req_lines    = [f"  - {years}+ years of hands-on professional experience"]
         for domain, domain_skills in skill_groups.items():
@@ -273,11 +260,9 @@ class JobDescriptionGenerator:
         ]
         req_block = "\n".join(req_lines)
 
-        # what we offer
         offers      = self._OFFERS.get(category, self._OFFERS["_default"])
         offer_block = "\n".join(f"  - {o}" for o in offers)
 
-        # tech stack
         tech_stack = ", ".join(skills) if skills else "General technical skills"
 
         sep = "─" * 50
@@ -293,7 +278,6 @@ class JobDescriptionGenerator:
             f"{sep}"
         )
 
-    # ── AI mode ─────────────────────────────────────────────────────────────
 
     def _generate_ai(self, resume_text, category):
         """Call Claude API to write a unique JD. Falls back to rule-based on error."""

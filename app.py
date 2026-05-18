@@ -1,6 +1,5 @@
 """
 app.py — Resume NLP System (Streamlit)
-=======================================
 Pages:
     1. Home        — pipeline overview and dataset stats
     2. Classifier  — paste a resume, get a predicted job category
@@ -199,9 +198,7 @@ df          = pipeline["df"]
 STOP_WORDS  = pipeline["preprocessor"]._stopwords
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  PAGE 1 — Home
-# ══════════════════════════════════════════════════════════════════════════════
 if page == "🏠 Home":
     st.title("📄 Resume NLP System")
     st.markdown(
@@ -236,9 +233,7 @@ if page == "🏠 Home":
 """)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  PAGE 2 — Classifier
-# ══════════════════════════════════════════════════════════════════════════════
 elif page == "🤖 Classifier":
     st.header("Resume Classifier")
     st.markdown("Paste a resume — the system predicts its job category using cosine similarity to TF-IDF category centroids.")
@@ -276,9 +271,7 @@ elif page == "🤖 Classifier":
                 t2.code(result["processed"][:600], language="text")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  PAGE 3 — JD Matcher
-# ══════════════════════════════════════════════════════════════════════════════
 elif page == "🔍 JD Matcher":
     st.header("Job Description Matcher")
     st.markdown("Paste a Job Description — the system finds the most similar resumes.")
@@ -317,9 +310,7 @@ elif page == "🔍 JD Matcher":
                     st.text(row["resume_snippet"])
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  PAGE 4 — JD Generator
-# ══════════════════════════════════════════════════════════════════════════════
 elif page == "📝 JD Generator":
     st.header("Job Description Generator")
     st.markdown("Paste a resume — the system builds a matching Job Description.")
@@ -356,9 +347,7 @@ elif page == "📝 JD Generator":
                         st.markdown(f'<span class="badge">{s}</span>', unsafe_allow_html=True)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
 #  PAGE 5 — EDA Dashboard
-# ══════════════════════════════════════════════════════════════════════════════
 elif page == "📊 EDA":
     st.header("EDA Dashboard")
 

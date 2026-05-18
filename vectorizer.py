@@ -1,11 +1,9 @@
 """
 vectorizer.py
--------------
-Build a Bag-of-N-Grams matrix from processed resume text.
 
+Build a Bag-of-N-Grams matrix from processed resume text.
 Uses CountVectorizer (sklearn) exactly as discussed in the course.
 Everything is done manually: fit, transform, top-ngrams, label encoding.
-
 No magic — just counting word frequencies.
 """
 
@@ -24,7 +22,6 @@ class BagOfNGrams:
     so beginners can explore the vocabulary and top n-grams easily.
 
     Methods
-    -------
     fit(df, text_col, label_col)   : learn vocabulary and encode labels
     transform(texts)               : convert new texts to feature matrix
     get_features()                 : return (X sparse matrix, y int array)
@@ -43,7 +40,6 @@ class BagOfNGrams:
     ):
         """
         Parameters
-        ----------
         ngram_range  : tuple (min_n, max_n), default (1,2)
             Include unigrams and bigrams.
         max_features : int, default 20 000
@@ -71,20 +67,17 @@ class BagOfNGrams:
         self._y       = None
         self._fitted  = False
 
-    # ── public ──────────────────────────────────────────────────────────────
 
     def fit(self, df, text_col="processed_resume", label_col="Category"):
         """
         Learn vocabulary from the corpus and encode category labels.
 
         Parameters
-        ----------
         df        : pd.DataFrame  — must contain text_col and label_col
         text_col  : str           — column of processed resume strings
         label_col : str           — column of category names
 
         Returns
-        -------
         self  (so you can chain: bg.fit(df).summary())
         """
         for col in (text_col, label_col):
@@ -104,11 +97,9 @@ class BagOfNGrams:
         Convert new texts to the learned feature space.
 
         Parameters
-        ----------
         texts : list of str  — processed resume strings
 
         Returns
-        -------
         sparse matrix  shape (len(texts), n_features)
         """
         self._check_fitted()
@@ -119,7 +110,6 @@ class BagOfNGrams:
         Return the fitted feature matrix and integer labels.
 
         Returns
-        -------
         X : sparse matrix  shape (n_docs, n_features)
         y : np.ndarray     shape (n_docs,)  integer-encoded categories
         """
@@ -131,7 +121,6 @@ class BagOfNGrams:
         Return the list of n-gram strings in vocabulary order.
 
         Returns
-        -------
         list of str
         """
         self._check_fitted()
@@ -142,7 +131,6 @@ class BagOfNGrams:
         Return a dict mapping integer label → category name.
 
         Returns
-        -------
         dict  {int: str}
         """
         self._check_fitted()
@@ -153,14 +141,12 @@ class BagOfNGrams:
         Return the most frequent n-grams, globally or per category.
 
         Parameters
-        ----------
         category : str or None
             If None, shows global top n-grams across all resumes.
         top_n    : int, default 20
             How many n-grams to return.
 
         Returns
-        -------
         pd.DataFrame  columns ['ngram', 'count']  sorted descending
         """
         self._check_fitted()
@@ -189,7 +175,6 @@ class BagOfNGrams:
         print(f"  categories    : {list(self._label_enc.classes_)}")
         print(f"  matrix shape  : {self._X.shape}")
 
-    # ── private ─────────────────────────────────────────────────────────────
 
     def _check_fitted(self):
         if not self._fitted:

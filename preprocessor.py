@@ -1,6 +1,5 @@
 """
 preprocessor.py
----------------
 Tokenise, filter, and normalise resume text.
 
 Uses NLTK for tokenisation, stop-word loading, and lemmatisation
@@ -104,14 +103,7 @@ class ResumePreprocessor:
     """
     Convert a cleaned resume string into a normalised token string.
 
-    Steps applied in order:
-        1. word_tokenize  (NLTK punkt tokeniser, or regex fallback)
-        2. Remove stop words
-        3. Keep only alphabetic tokens longer than min_token_length
-        4. Lemmatise (default) or stem
-
     Methods
-    -------
     process(text)          -> str        : process a single string
     process_series(series) -> pd.Series  : process every row in a Series
     add_stopwords(words)                 : add extra words to the stop list
@@ -126,7 +118,6 @@ class ResumePreprocessor:
     ):
         """
         Parameters
-        ----------
         use_lemmatization : bool, default True
             Map tokens to dictionary form with WordNetLemmatizer.
         use_stemming      : bool, default False
@@ -149,11 +140,9 @@ class ResumePreprocessor:
         Tokenise and normalise a single cleaned resume string.
 
         Parameters
-        ----------
         text : str  — cleaned resume text (output of ResumeCleaner)
 
         Returns
-        -------
         str  — space-joined normalised tokens (empty string if nothing left)
         """
         if not isinstance(text, str) or not text.strip():
@@ -172,11 +161,9 @@ class ResumePreprocessor:
         Apply process() to every element of a pandas Series.
 
         Parameters
-        ----------
         series : pd.Series  — column of cleaned resume strings
 
         Returns
-        -------
         pd.Series  — same index, processed strings
         """
         return series.apply(self.process)
@@ -186,7 +173,6 @@ class ResumePreprocessor:
         Extend the stop-word set at runtime.
 
         Parameters
-        ----------
         words : list of str  — words to add
         """
         self._stopwords.update(w.lower() for w in words)

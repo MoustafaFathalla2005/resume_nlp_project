@@ -1,6 +1,5 @@
 """
 cleaner.py
-----------
 Strip noise from raw resume text before any NLP processing.
 
 Removes emails, phone numbers, URLs, special characters, and
@@ -16,17 +15,7 @@ class ResumeCleaner:
     """
     Clean raw resume text.
 
-    Steps applied in order:
-        1. Remove e-mail addresses
-        2. Remove phone numbers
-        3. Remove URLs
-        4. Normalise unicode to plain ASCII
-        5. Remove all non-alphanumeric, non-space characters
-        6. Collapse multiple spaces into one
-        7. Lowercase (optional)
-
     Methods
-    -------
     clean(text)          -> str          : clean a single string
     clean_series(series) -> pd.Series    : clean every row in a Series
     """
@@ -34,7 +23,6 @@ class ResumeCleaner:
     def __init__(self, lowercase=True):
         """
         Parameters
-        ----------
         lowercase : bool, default True
             Convert text to lowercase after cleaning.
         """
@@ -52,12 +40,9 @@ class ResumeCleaner:
         Clean a single resume string.
 
         Parameters
-        ----------
         text : str  — raw resume text
 
-        Returns
-        -------
-        str  — cleaned text (empty string if input is blank or not a string)
+        Returns:  str  - cleaned text (empty string if input is blank or not a string)
         """
         if not isinstance(text, str) or not text.strip():
             return ""
@@ -79,12 +64,9 @@ class ResumeCleaner:
         Apply clean() to every element of a pandas Series.
 
         Parameters
-        ----------
         series : pd.Series  — column of raw resume strings
 
-        Returns
-        -------
-        pd.Series  — same index, cleaned strings
+        Returns:pd.Series  — same index, cleaned strings
         """
         return series.apply(self.clean)
 
